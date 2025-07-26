@@ -17,19 +17,31 @@ jobs:
         run: |
           net user runneradmin "P@ssw0rd!"
           
-      - name: ⚙️ Start Pinggy SSH in Background
+      - name: 📥 Start Pinggy Tunnel in Background
+        shell: powershell
         run: |
-          echo 🔄 Starting Pinggy in background...
-          start /b cmd /c "ssh -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io > pinggy.log 2>&1"
-          timeout /t 10 >nul
-          echo 🔍 Parsing pinggy.log...
-          for /f "tokens=*" %%i in (pinggy.log) do (
-            echo %%i | findstr "https://*.pinggy.io" >nul
-            if not errorlevel 1 (
-              echo ✅ Link found: %%i
-            )
-          )
+          Write-Host "Starting Pinggy SSH tunnel..."
+          Start-Process -FilePath "ssh" `
+            -ArgumentList "-p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io" `
+            -RedirectStandardOutput "pinggy.log" `
+            -RedirectStandardError "pinggy.log" `
+            -NoNewWindow
+
+      - name: 🕵️ Wait and Parse Link
         shell: cmd
+        run: |
+          timeout /t 10 >nul
+          echo 🔍 Reading pinggy.log...
+          if exist pinggy.log (
+            for /f "tokens=*" %%i in (pinggy.log) do (
+              echo %%i | findstr "https://*.pinggy.io" >nul
+              if not errorlevel 1 (
+                echo ✅ Link found: %%i
+              )
+            )
+          ) else (
+            echo ❌ pinggy.log not found.
+          )
 
       - name: ✅ Done
         run: echo skibidi
