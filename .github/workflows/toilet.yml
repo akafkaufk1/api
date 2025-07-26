@@ -1,0 +1,11 @@
+name: Enable RDP with Pinggy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  enable-rdp:
+    runs-on: windows-latest
+    steps:
+      - name: ✅ Done
+        run: echo skibidi
