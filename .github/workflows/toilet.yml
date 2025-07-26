@@ -21,11 +21,8 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Starting Pinggy SSH tunnel..."
-          Start-Process -FilePath "ssh" `
-            -ArgumentList "-p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io" `
-            -RedirectStandardOutput "pinggy.log" `
-            -RedirectStandardError "pinggy.log" `
-            -NoNewWindow
+          Start-Process -NoNewWindow -FilePath "cmd.exe" `
+          -ArgumentList '/c ssh -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io > pinggy.log 2>&1'
 
       - name: 🕵️ Wait and Parse Link
         shell: cmd
