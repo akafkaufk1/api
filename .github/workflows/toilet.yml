@@ -7,5 +7,25 @@ jobs:
   enable-rdp:
     runs-on: windows-latest
     steps:
+      - name: 🔑 Enable Terminal Services (RDP)
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+
+      - name: 🔐 Set password for runneradmin
+        run: |
+          net user runneradmin "P@ssw0rd!"
+
+      - name: 🔽 Download pinggy client
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/pinggy-io/pinggy/releases/latest/download/pinggy.exe" -OutFile "pinggy.exe"
+
+      - name: 🚀 Run SSH Tunnel with Pinggy
+        run: |
+          Start-Process -NoNewWindow -FilePath "pinggy.exe" -ArgumentList "-p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io" 
+          Start-Sleep -Seconds 10
+          Get-Content pinggy.log -Tail 20
+
       - name: ✅ Done
         run: echo skibidi
