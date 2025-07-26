@@ -42,10 +42,10 @@ jobs:
           $output | Out-File $log
 
           if ($output -match "https:\/\/[^\s]+\.pinggy\.io") {
-              Write-Host "✅ Link found: $($matches[0])"
+              Write-Host "Link found: $($matches[0])"
           } else {
-              Write-Host "❌ Pinggy link not found."
-              Write-Host "🔍 Full output for debugging:"
+              Write-Host "Pinggy link not found."
+              Write-Host "Full output for debugging:"
               Write-Host $output
           }
       - name: ✅ Done
