@@ -16,16 +16,17 @@ jobs:
       - name: 🔐 Set password for runneradmin
         run: |
           net user runneradmin "P@ssw0rd!"
-
-      - name: 🔽 Download pinggy client
-        run: |
-          curl.exe -L "https://github.com/pinggy-io/pinggy/releases/latest/download/pinggy.exe" -o pinggy.exe
-
+          
       - name: 🚀 Run SSH Tunnel with Pinggy
         run: |
-          Start-Process -NoNewWindow -FilePath "pinggy.exe" -ArgumentList "-p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io" 
-          Start-Sleep -Seconds 10
-          Get-Content pinggy.log -Tail 20
-
+          $logPath = "$env:TEMP\pinggy_output.txt"
+          Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c ssh -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io > `"$logPath`"" 
+          Start-Sleep -Seconds 5
+          $content = Get-Content $logPath | Select-String -Pattern "https://.*\.pinggy\.io"
+          if ($content) {
+            Write-Host "🌐 Pinggy link: $($content.Matches.Value)"
+          } else {
+            Write-Host "⚠️ Không tìm thấy link trong log."
+          }
       - name: ✅ Done
         run: echo skibidi
