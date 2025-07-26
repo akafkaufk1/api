@@ -17,28 +17,36 @@ jobs:
         run: |
           net user runneradmin "P@ssw0rd!"
           
-      - name: 📥 Start Pinggy Tunnel in Background
+      - name: 🚀 Start Pinggy SSH in Background with Log Capture
         shell: powershell
         run: |
-          Write-Host "Starting Pinggy SSH tunnel..."
-          Start-Process -NoNewWindow -FilePath "cmd.exe" `
-          -ArgumentList '/c ssh -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io > pinggy.log 2>&1'
+          Write-Host "Starting Pinggy in background..."
+          $log = "pinggy.log"
+          $psi = New-Object System.Diagnostics.ProcessStartInfo
+          $psi.FileName = "ssh"
+          $psi.Arguments = "-p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io"
+          $psi.RedirectStandardOutput = $true
+          $psi.RedirectStandardError = $true
+          $psi.UseShellExecute = $false
+          $psi.CreateNoWindow = $true
 
-      - name: 🕵️ Wait and Parse Link
-        shell: cmd
-        run: |
-          timeout /t 10 >nul
-          echo 🔍 Reading pinggy.log...
-          if exist pinggy.log (
-            for /f "tokens=*" %%i in (pinggy.log) do (
-              echo %%i | findstr "https://*.pinggy.io" >nul
-              if not errorlevel 1 (
-                echo ✅ Link found: %%i
-              )
-            )
-          ) else (
-            echo ❌ pinggy.log not found.
-          )
+          $process = New-Object System.Diagnostics.Process
+          $process.StartInfo = $psi
+          $null = $process.Start()
 
+          Start-Sleep -Seconds 10
+
+          $stdout = $process.StandardOutput.ReadToEnd()
+          $stderr = $process.StandardError.ReadToEnd()
+          $output = "$stdout`n$stderr"
+          $output | Out-File $log
+
+          if ($output -match "https:\/\/[^\s]+\.pinggy\.io") {
+              Write-Host "✅ Link found: $($matches[0])"
+          } else {
+              Write-Host "❌ Pinggy link not found."
+              Write-Host "🔍 Full output for debugging:"
+              Write-Host $output
+          }
       - name: ✅ Done
         run: echo skibidi
