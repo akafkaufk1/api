@@ -19,7 +19,7 @@ jobs:
 
       - name: 🔽 Download pinggy client
         run: |
-          Invoke-WebRequest -Uri "https://github.com/pinggy-io/pinggy/releases/latest/download/pinggy.exe" -OutFile "pinggy.exe"
+          curl.exe -L "https://github.com/pinggy-io/pinggy/releases/latest/download/pinggy.exe" -o pinggy.exe
 
       - name: 🚀 Run SSH Tunnel with Pinggy
         run: |
