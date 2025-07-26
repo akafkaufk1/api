@@ -19,13 +19,14 @@ jobs:
           
       - name: ⚙️ Start Pinggy SSH in Background
         run: |
-          start /b ssh -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io > pinggy.log 2>&1
-          timeout /t 5 >nul
-          echo Parsing output...
+          echo 🔄 Starting Pinggy in background...
+          start /b cmd /c "ssh -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 t5w9T4lcjRY+tcp@free.pinggy.io > pinggy.log 2>&1"
+          timeout /t 10 >nul
+          echo 🔍 Parsing pinggy.log...
           for /f "tokens=*" %%i in (pinggy.log) do (
             echo %%i | findstr "https://*.pinggy.io" >nul
             if not errorlevel 1 (
-              echo 🔗 Link found: %%i
+              echo ✅ Link found: %%i
             )
           )
         shell: cmd
