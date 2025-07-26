@@ -20,7 +20,6 @@ jobs:
       - name: 🚀 Start Pinggy SSH in Background with Log Capture
         shell: powershell
         run: |
-          Write-Host "Starting Pinggy in background..."
           $log = "pinggy.log"
           $psi = New-Object System.Diagnostics.ProcessStartInfo
           $psi.FileName = "ssh"
@@ -32,21 +31,33 @@ jobs:
 
           $process = New-Object System.Diagnostics.Process
           $process.StartInfo = $psi
-          $null = $process.Start()
+          $process.Start() | Out-Null
 
-          Start-Sleep -Seconds 10
+          $reader = $process.StandardOutput
+          $found = $false
+          $timeout = [datetime]::Now.AddSeconds(20)
 
-          $stdout = $process.StandardOutput.ReadToEnd()
-          $stderr = $process.StandardError.ReadToEnd()
-          $output = "$stdout`n$stderr"
-          $output | Out-File $log
+          while (-not $reader.EndOfStream -and [datetime]::Now -lt $timeout) {
+              $line = $reader.ReadLine()
+              Write-Host $line
 
-          if ($output -match "https:\/\/[^\s]+\.pinggy\.io") {
-              Write-Host "Link found: $($matches[0])"
-          } else {
-              Write-Host "Pinggy link not found."
-              Write-Host "Full output for debugging:"
-              Write-Host $output
+              if ($line -match "https:\/\/[^\s]+\.pinggy\.io") {
+                  Write-Host "Link found: $($matches[0])"
+                  $found = $true
+                  break
+              }
           }
+
+          if (-not $found) {
+              Write-Host "Pinggy link not found after timeout."
+          }
+
+          try {
+              $process.Kill()
+              Write-Host "SSH process terminated."
+          } catch {
+              Write-Host "SSH process already exited."
+          }
+
       - name: ✅ Done
         run: echo skibidi
